@@ -17,12 +17,12 @@ class ReservationCreateView(generics.CreateAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
     permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
-    def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except Exception as e:
-            print(f"🔥 Error in ReservationCreateView: {e}")
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # def create(self, request, *args, **kwargs):
+    #     try:
+    #         return super().create(request, *args, **kwargs)
+    #     except Exception as e:
+    #         print(f"🔥 Error in ReservationCreateView: {e}")
+    #         return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -52,8 +52,13 @@ class TableAdminViewSet(viewsets.ModelViewSet):
 class ReservationListView(generics.ListAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-# views.py
+    permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
 
+# views.py
+class ReservationDetailView(RetrieveAPIView):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+    permission_classes = [AllowAny] 
 def get_table_by_room_and_id(request, room_id, table_id):
     try:
         room = Room.objects.get(id=room_id)

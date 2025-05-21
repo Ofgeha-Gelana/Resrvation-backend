@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import RoomListView, ReservationCreateView, ReservationListView
-from .views import RoomAdminViewSet, TableAdminViewSet,RoomDetailView,get_table_by_room_and_id
+from .views import RoomAdminViewSet, TableAdminViewSet,RoomDetailView,get_table_by_room_and_id,ReservationDetailView
 
 router = DefaultRouter()
 router.register('admin/rooms', RoomAdminViewSet)
@@ -14,5 +14,7 @@ urlpatterns = [
 
     path('reserve/', ReservationCreateView.as_view(), name='reservation-create'),
     path('reservations/', ReservationListView.as_view(), name='reservation-list'),
+    path('reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
+
     path('', include(router.urls)),
 ]
