@@ -10,6 +10,104 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+################## This One ##################
+
+import ldap
+from django_auth_ldap.config import LDAPSearch
+
+
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10"
+AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10:389"
+AUTH_LDAP_BIND_DN = "CN=adtest,OU=Coopbank Application Users,DC=coopbank,DC=local"  # <- Confirmed from IT
+AUTH_LDAP_BIND_PASSWORD = "Coop$1234"
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "DC=coopbank,DC=local",  # Base DN
+    ldap.SCOPE_SUBTREE,
+    "(sAMAccountName=%(user)s)",  # This is typical for AD logins
+)
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+AUTH_LDAP_CREATE_USERS = True
+
+
+
+import logging
+
+logger = logging.getLogger('django_auth_ldap')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
+
+
+
+
+################ End Here####################
+
+
+
+
+
+
+
+
+# import ldap
+# from django_auth_ldap.config import LDAPSearch
+
+# AUTHENTICATION_BACKENDS = [
+#     'django_auth_ldap.backend.LDAPBackend',
+#     'django.contrib.auth.backends.ModelBackend',
+# ]
+
+# AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10:389"
+# AUTH_LDAP_BIND_DN = ""
+# AUTH_LDAP_BIND_PASSWORD = ""
+
+# AUTH_LDAP_USER_SEARCH = LDAPSearch(
+#     "dc=yourcompany,dc=local",  # Replace this with actual AD base DN
+#     ldap.SCOPE_SUBTREE,
+#     "(sAMAccountName=%(user)s)",
+# )
+
+# AUTH_LDAP_USER_ATTR_MAP = {
+#     "first_name": "givenName",
+#     "last_name": "sn",
+#     "email": "mail",
+# }
+
+# AUTH_LDAP_ALWAYS_UPDATE_USER = True
+# AUTH_LDAP_CREATE_USERS = True
+
+
+
+# # Add LDAP config
+# AUTH_LDAP_SERVER_URI = "ldap://your.ldap.server"
+# AUTH_LDAP_BIND_DN = "cn=admin,dc=example,dc=com"
+# AUTH_LDAP_BIND_PASSWORD = "admin_password"
+# AUTH_LDAP_USER_SEARCH = LDAPSearch(
+#     "ou=users,dc=example,dc=com",
+#     ldap.SCOPE_SUBTREE,
+#     "(uid=%(user)s)",
+# )
+# AUTH_LDAP_USER_ATTR_MAP = {
+#     "first_name": "givenName",
+#     "last_name": "sn",
+#     "email": "mail",
+# }
+# AUTH_LDAP_ALWAYS_UPDATE_USER = True
+# AUTH_LDAP_CREATE_USERS = True
+
+
 
 
 # Quick-start development settings - unsuitable for production
