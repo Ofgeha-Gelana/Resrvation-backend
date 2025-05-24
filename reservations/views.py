@@ -6,6 +6,8 @@ from .models import Room, Table, Reservation
 from .serializers import RoomSerializer, TableSerializer, ReservationSerializer
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
 
 class RoomListView(generics.ListAPIView):
     queryset = Room.objects.prefetch_related('tables').all()
@@ -13,16 +15,85 @@ class RoomListView(generics.ListAPIView):
     permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
 
 
+# class ReservationCreateView(generics.CreateAPIView):
+#     queryset = Reservation.objects.all()
+#     serializer_class = ReservationSerializer
+#     permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
+#     def create(self, request, *args, **kwargs):
+#         try:
+#             return super().create(request, *args, **kwargs)
+#         except Exception as e:
+#             print(f"🔥 Error in ReservationCreateView: {e}")
+#             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+from django.core.mail import send_mail
+from django.conf import settings
+
 class ReservationCreateView(generics.CreateAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
-    # def create(self, request, *args, **kwargs):
-    #     try:
-    #         return super().create(request, *args, **kwargs)
-    #     except Exception as e:
-    #         print(f"🔥 Error in ReservationCreateView: {e}")
-    #         return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            response = super().create(request, *args, **kwargs)
+            reservation = self.get_queryset().get(id=response.data['id'])
+
+            # 1️⃣ Send email to assigned staff
+            staff_email = reservation.table.room.assigned_staff_email
+            send_mail(
+                subject='New Table Reservation Assigned',
+                message=f"""
+Hello,
+
+You have guests reserved at the following table:
+
+Room: {reservation.table.room.name}
+Table: {reservation.table.name}
+Guests: {reservation.number_of_guests}
+Customer: {reservation.customer_name}
+Time: {reservation.start_time.strftime('%Y-%m-%d %H:%M')} to {reservation.end_time.strftime('%Y-%m-%d %H:%M')}
+
+Please be prepared to serve.
+
+Thanks.
+""",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[staff_email],
+                fail_silently=False,
+            )
+
+            # 2️⃣ Send email to each guest
+            guest_emails = reservation.get_email_list()
+            if guest_emails:
+                send_mail(
+                    subject='You are Invited to a Table Reservation',
+                    message=f"""
+Hello,
+
+You are invited to join a reservation:
+
+Host: {reservation.customer_name}
+Room: {reservation.table.room.name}
+Table: {reservation.table.name}
+Time: {reservation.start_time.strftime('%Y-%m-%d %H:%M')} to {reservation.end_time.strftime('%Y-%m-%d %H:%M')}
+Message from Host: {reservation.description or "No message provided."}
+
+We look forward to having you!
+
+Cheers.
+""",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=guest_emails,
+                    fail_silently=False,
+                )
+
+            return response
+
+        except Exception as e:
+            print(f"🔥 Error in ReservationCreateView: {e}")
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 

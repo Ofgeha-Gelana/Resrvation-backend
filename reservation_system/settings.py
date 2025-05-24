@@ -36,7 +36,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'rest_framework',
     'corsheaders',
+
     'reservations',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,12 +85,22 @@ import os
 DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
 
+
+
+# DEBUG=True
+# SECRET_KEY=*ltxny%lq*ss__0dmr1&(8wa649wr*-1(we8&49n#m9gz9^6)%
+# DB_NAME=Reservation
+# DB_USER=postgres
+# DB_PASSWORD=ofge
+# DB_HOST=localhost
+# DB_PORT=5432
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME":config("DB_NAME"),
         "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PW"),
+        "PASSWORD": config("DB_PASSWORD"),
         "HOST": config("DB_HOST"),
         "PORT": config("DB_PORT"),
         "CONN_MAX_AGE": 0,
@@ -155,3 +167,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
