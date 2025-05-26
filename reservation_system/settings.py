@@ -121,7 +121,9 @@ DEBUG = True
 SECURE_SSL_REDIRECT = False
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.8.100.93']
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
