@@ -13,6 +13,7 @@ class RoomListView(generics.ListAPIView):
     queryset = Room.objects.prefetch_related('tables').all()
     serializer_class = RoomSerializer
     permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
+    
 
 
 # class ReservationCreateView(generics.CreateAPIView):
@@ -164,26 +165,60 @@ def get_table_by_room_and_id(request, room_id, table_id):
 
 
 
-######## This is for ldap ##    
-# views.py
-from django.contrib.auth import authenticate, login
+
+
+
+
+# # views.py
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework.authtoken.models import Token
+# from django.contrib.auth import authenticate
+# from rest_framework import status
+
+# class LDAPLoginView(APIView):
+#     permission_classes = []
+
+#     def post(self, request):
+#         username = request.data.get("username")
+#         password = request.data.get("password")
+
+#         user = authenticate(request, username=username, password=password)
+#         if user:
+#             token, _ = Token.objects.get_or_create(user=user)
+#             return Response({"token": token.key})
+#         else:
+#             return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 from rest_framework import status
 
 class LDAPLoginView(APIView):
-    permission_classes = [AllowAny]
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
+    permission_classes = []
 
-        if not username or not password:
-            return Response({'detail': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
 
         user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            return Response({'detail': 'Login successful.'}, status=status.HTTP_200_OK)
+        if user:
+            token, _ = Token.objects.get_or_create(user=user)
+            user_data = {
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                # Add other user fields if needed
+            }
+            return Response({
+                "token": token.key,
+                "user": user_data
+            })
         else:
-            return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)

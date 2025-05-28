@@ -11,107 +11,46 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 ################## This One ##################
-
 import ldap
 from django_auth_ldap.config import LDAPSearch
 
 
+# AUTHENTICATION BACKENDS
 AUTHENTICATION_BACKENDS = [
     'django_auth_ldap.backend.LDAPBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Keep Django fallback
 ]
 
-# AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10"
-AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10:389"
-AUTH_LDAP_BIND_DN = "CN=adtest,OU=Coopbank Application Users,DC=coopbank,DC=local"  # <- Confirmed from IT
+# LDAP SETTINGS
+AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10"
+
+# Bind credentials for searching
+AUTH_LDAP_BIND_DN = "coopbank\\adtest"  # DOMAIN\\username
 AUTH_LDAP_BIND_PASSWORD = "Coop$1234"
 
+# Where to search for users
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    "DC=coopbank,DC=local",  # Base DN
+    "DC=coopbank,DC=local",
     ldap.SCOPE_SUBTREE,
-    "(sAMAccountName=%(user)s)",  # This is typical for AD logins
+    "(sAMAccountName=%(user)s)"
 )
 
+# Map AD fields to Django User fields (optional but helpful)
 AUTH_LDAP_USER_ATTR_MAP = {
     "first_name": "givenName",
     "last_name": "sn",
     "email": "mail",
 }
 
+# Auto-create user in Django if authenticated via AD
 AUTH_LDAP_ALWAYS_UPDATE_USER = True
 AUTH_LDAP_CREATE_USERS = True
 
 
 
-import logging
-
-logger = logging.getLogger('django_auth_ldap')
-logger.addHandler(logging.StreamHandler())
-logger.setLevel(logging.DEBUG)
 
 
 
-
-################ End Here####################
-
-
-
-
-
-
-
-
-# import ldap
-# from django_auth_ldap.config import LDAPSearch
-
-# AUTHENTICATION_BACKENDS = [
-#     'django_auth_ldap.backend.LDAPBackend',
-#     'django.contrib.auth.backends.ModelBackend',
-# ]
-
-# AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10:389"
-# AUTH_LDAP_BIND_DN = ""
-# AUTH_LDAP_BIND_PASSWORD = ""
-
-# AUTH_LDAP_USER_SEARCH = LDAPSearch(
-#     "dc=yourcompany,dc=local",  # Replace this with actual AD base DN
-#     ldap.SCOPE_SUBTREE,
-#     "(sAMAccountName=%(user)s)",
-# )
-
-# AUTH_LDAP_USER_ATTR_MAP = {
-#     "first_name": "givenName",
-#     "last_name": "sn",
-#     "email": "mail",
-# }
-
-# AUTH_LDAP_ALWAYS_UPDATE_USER = True
-# AUTH_LDAP_CREATE_USERS = True
-
-
-
-# # Add LDAP config
-# AUTH_LDAP_SERVER_URI = "ldap://your.ldap.server"
-# AUTH_LDAP_BIND_DN = "cn=admin,dc=example,dc=com"
-# AUTH_LDAP_BIND_PASSWORD = "admin_password"
-# AUTH_LDAP_USER_SEARCH = LDAPSearch(
-#     "ou=users,dc=example,dc=com",
-#     ldap.SCOPE_SUBTREE,
-#     "(uid=%(user)s)",
-# )
-# AUTH_LDAP_USER_ATTR_MAP = {
-#     "first_name": "givenName",
-#     "last_name": "sn",
-#     "email": "mail",
-# }
-# AUTH_LDAP_ALWAYS_UPDATE_USER = True
-# AUTH_LDAP_CREATE_USERS = True
-
-
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-b*m4n(e+ld$&vg2c+&%en9#eigs+0*@clz7d!&iyjut96gu7j_'
@@ -138,6 +77,10 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'reservations',
+    'django_auth_ldap',
+    
+    # 'rest_framework',
+    'rest_framework.authtoken', 
     
     'django.contrib.admin',
     'django.contrib.auth',
@@ -187,13 +130,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 
 
-# DEBUG=True
-# SECRET_KEY=*ltxny%lq*ss__0dmr1&(8wa649wr*-1(we8&49n#m9gz9^6)%
-# DB_NAME=Reservation
-# DB_USER=postgres
-# DB_PASSWORD=ofge
-# DB_HOST=localhost
-# DB_PORT=5432
+
 
 DATABASES = {
     "default": {
@@ -252,10 +189,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # JWT Authentication Settings
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+# }
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # or SessionAuthentication
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
