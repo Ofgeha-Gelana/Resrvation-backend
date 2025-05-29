@@ -124,6 +124,7 @@ class TableAdminViewSet(viewsets.ModelViewSet):
 class ReservationListView(generics.ListAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
+    permission_classes = [AllowAny]
 # views.py
 
 def get_table_by_room_and_id(request, room_id, table_id):

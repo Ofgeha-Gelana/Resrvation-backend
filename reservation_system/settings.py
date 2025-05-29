@@ -61,11 +61,13 @@ SECURE_SSL_REDIRECT = False
 
 # ALLOWED_HOSTS = []
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.8.100.93']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.8.100.93', '10.12.53.81']
 
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://10.8.100.93:9000",
+    "http://10.12.53.81:9000",
 ]
 
 
@@ -198,14 +200,38 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     ],
 # }
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.TokenAuthentication',  # or SessionAuthentication
+#     ],
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+# }
+
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',  # or SessionAuthentication
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),  # User stays logged in for 30 minutes
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),     # Optional: refresh token valid for 1 day
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
 
 
 
@@ -216,4 +242,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
