@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; color: #333; }
+    .container { padding: 20px; border: 1px solid #eee; border-radius: 8px; max-width: 600px; margin: auto; }
+    h2 { color: #007BFF; }
+    p { line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>New Table Reservation Assigned</h2>
+    <p><strong>Room Name:</strong> {{ room }}</p>
+    <p><strong>Table Name:</strong> {{ table }}</p>
+    <p><strong>Refreshments:</strong> {{ refreshments }}</p>
+
+    <p><strong>Number of Guests:</strong> {{ guests }}</p>
+    <p><strong>Reserved by:</strong> {{ customer }}</p>
+    <p><strong>Time:</strong> {{ start_time }} to {{ end_time }}</p>
+    <p>Please be prepared to serve.</p>
+    <br>
+    <p>Thanks.</p>
+  </div>
+</body>
+</html>

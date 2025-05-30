@@ -38,4 +38,6 @@ class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_email_list(self):
-        return [email.strip() for email in self.guest_email.split(",") if email.strip()]
+        if not self.guest_email:
+            return []
+        return [email.strip() for email in self.guest_email.split(',') if email.strip()]

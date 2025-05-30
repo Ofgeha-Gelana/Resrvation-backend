@@ -4,6 +4,8 @@ from rest_framework import serializers
 from .models import Room, Table, Reservation
 from django.utils import timezone
 from django.utils.timezone import localtime
+import base64
+from django.core.files.base import ContentFile
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -22,7 +24,7 @@ class ReservationSerializer(serializers.ModelSerializer):
     table_detail = TableSerializer(source='table', read_only=True)  # Read-only nested detail
 
     table = serializers.PrimaryKeyRelatedField(queryset=Table.objects.all())  # For writes
-    
+    summary_pdf = serializers.FileField(required=False)
 
     class Meta:
         model = Reservation
@@ -58,3 +60,4 @@ class ReservationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This table is already reserved for that time.")
 
         return data
+ 

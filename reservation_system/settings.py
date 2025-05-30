@@ -9,9 +9,6 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -23,10 +20,12 @@ DEBUG = True
 SECURE_SSL_REDIRECT = False
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','10.8.100.93','10.12.53.81']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    'http://10.8.100.93:9000',
+    'http://10.12.53.81:9000'
 ]
 
 
@@ -168,6 +167,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# settings.py
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.coopbankoromiasc.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = True  # <-- try this
+EMAIL_HOST_USER = 'noreply@coopbankoromiasc.com'
+EMAIL_HOST_PASSWORD = 'N0rep1y7ujm<KI*'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+

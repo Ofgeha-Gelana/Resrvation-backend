@@ -8,6 +8,12 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+from django.utils.timezone import localtime
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 class RoomListView(generics.ListAPIView):
     queryset = Room.objects.prefetch_related('tables').all()
@@ -15,19 +21,7 @@ class RoomListView(generics.ListAPIView):
     permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
 
 
-# class ReservationCreateView(generics.CreateAPIView):
-#     queryset = Reservation.objects.all()
-#     serializer_class = ReservationSerializer
-#     permission_classes = [AllowAny]  # 👈 This allows public access (no auth)
-#     def create(self, request, *args, **kwargs):
-#         try:
-#             return super().create(request, *args, **kwargs)
-#         except Exception as e:
-#             print(f"🔥 Error in ReservationCreateView: {e}")
-#             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-from django.core.mail import send_mail
-from django.conf import settings
 
 class ReservationCreateView(generics.CreateAPIView):
     queryset = Reservation.objects.all()
@@ -36,64 +30,66 @@ class ReservationCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
+            # Create the reservation
             response = super().create(request, *args, **kwargs)
             reservation = self.get_queryset().get(id=response.data['id'])
 
-            # 1️⃣ Send email to assigned staff
-            staff_email = reservation.table.room.assigned_staff_email
-            send_mail(
-                subject='New Table Reservation Assigned',
-                message=f"""
-Hello,
+            # Send email to assigned staff
+            try:
+                staff_email = reservation.table.room.assigned_staff_email
 
-You have guests reserved at the following table:
+                html_content = render_to_string('email/reservation_email.html', {
+                    'room': reservation.table.room.name,
+                    'table': reservation.table.name,
+                    'guests': reservation.number_of_guests,
+                    'refreshments': reservation.refreshments or "None",
+                    'customer': reservation.customer_name,
+                    'start_time': localtime(reservation.start_time).strftime('%Y-%m-%d %I:%M %p'),
+                    'end_time': localtime(reservation.end_time).strftime('%Y-%m-%d %I:%M %p'),
+                })
 
-Room: {reservation.table.room.name}
-Table: {reservation.table.name}
-Guests: {reservation.number_of_guests}
-Customer: {reservation.customer_name}
-Time: {reservation.start_time.strftime('%Y-%m-%d %H:%M')} to {reservation.end_time.strftime('%Y-%m-%d %H:%M')}
-
-Please be prepared to serve.
-
-Thanks.
-""",
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[staff_email],
-                fail_silently=False,
-            )
-
-            # 2️⃣ Send email to each guest
-            guest_emails = reservation.get_email_list()
-            if guest_emails:
-                send_mail(
-                    subject='You are Invited to a Table Reservation',
-                    message=f"""
-Hello,
-
-You are invited to join a reservation:
-
-Host: {reservation.customer_name}
-Room: {reservation.table.room.name}
-Table: {reservation.table.name}
-Time: {reservation.start_time.strftime('%Y-%m-%d %H:%M')} to {reservation.end_time.strftime('%Y-%m-%d %H:%M')}
-Message from Host: {reservation.description or "No message provided."}
-
-We look forward to having you!
-
-Cheers.
-""",
+                email = EmailMultiAlternatives(
+                    subject='New Table Reservation Assigned',
+                    body='A new table reservation has been assigned.',
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=guest_emails,
-                    fail_silently=False,
+                    to=[staff_email],
                 )
+                email.attach_alternative(html_content, "text/html")
+                email.send()
+            except Exception as e:
+                print(f"⚠️ Failed to send staff email: {e}")
+
+            # Send email to guests
+            try:
+                guest_emails = reservation.get_email_list()
+                if guest_emails:
+                    html_guest_content = render_to_string('email/guest_invitation_email.html', {
+                        'host': reservation.customer_name,
+                        'host_email': reservation.email,
+                        'location': reservation.table.room.address,
+                        'room': reservation.table.room.name,
+                        'table': reservation.table.name,
+                        'start_time': localtime(reservation.start_time).strftime('%Y-%m-%d %I:%M %p'),
+                        'end_time': localtime(reservation.end_time).strftime('%Y-%m-%d %I:%M %p'),
+                        'description': reservation.description or "No message provided.",
+                    })
+
+                    guest_email_message = EmailMultiAlternatives(
+                        subject='You are Invited to a Table Reservation',
+                        body='You are invited to a reservation.',
+                        from_email=settings.EMAIL_HOST_USER,
+                        to=guest_emails,
+                    )
+                    guest_email_message.attach_alternative(html_guest_content, "text/html")
+                    guest_email_message.send()
+            except Exception as e:
+                print(f"⚠️ Failed to send guest emails: {e}")
 
             return response
 
         except Exception as e:
             print(f"🔥 Error in ReservationCreateView: {e}")
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 
