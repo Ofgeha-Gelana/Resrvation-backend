@@ -127,6 +127,12 @@ class ReservationListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 # views.py
 
+
+# views.py
+class ReservationDetailView(RetrieveAPIView):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+    permission_classes = [AllowAny] 
 def get_table_by_room_and_id(request, room_id, table_id):
     try:
         room = Room.objects.get(id=room_id)

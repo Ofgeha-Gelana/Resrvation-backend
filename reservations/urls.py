@@ -91,5 +91,8 @@ urlpatterns = [
     path('auth/ldap-login/', LDAPLoginView.as_view(), name='ldap-login'),
 
     # admin API routes (router)
-    path('', include(router.urls)),
+
+    path('reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
+
+
 ]

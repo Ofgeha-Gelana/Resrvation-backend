@@ -46,8 +46,8 @@ class ReservationSerializer(serializers.ModelSerializer):
         if start >= end:
             raise serializers.ValidationError("End time must be after start time.")
 
-        if data['number_of_guests'] > table.capacity:
-            raise serializers.ValidationError("Guest number exceeds table capacity.")
+        # if data['number_of_guests'] > table.capacity:
+        #     raise serializers.ValidationError("Guest number exceeds table capacity.")
 
         overlapping = Reservation.objects.filter(
             table=table,

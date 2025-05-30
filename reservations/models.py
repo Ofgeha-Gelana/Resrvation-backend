@@ -31,6 +31,8 @@ class Reservation(models.Model):
     email = models.EmailField()
     number_of_guests = models.PositiveIntegerField()
     description=models.TextField(null=True)
+    refreshments=models.TextField(null=True)
+
     guest_email=models.TextField(help_text="Comma-separated list of emails",null=True)
     start_time = models.DateTimeField()    
     end_time = models.DateTimeField()
