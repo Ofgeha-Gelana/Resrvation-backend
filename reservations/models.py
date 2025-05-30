@@ -27,6 +27,7 @@ class Table(models.Model):
 class Reservation(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations')
     customer_name = models.CharField(max_length=100)
+    refreshments=models.TextField(null=True)
     email = models.EmailField()
     number_of_guests = models.PositiveIntegerField()
     description=models.TextField(null=True)

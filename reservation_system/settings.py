@@ -10,10 +10,47 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+################## This One ##################
+import ldap
+from django_auth_ldap.config import LDAPSearch
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# AUTHENTICATION BACKENDS
+AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Keep Django fallback
+]
+
+# LDAP SETTINGS
+AUTH_LDAP_SERVER_URI = "ldap://10.1.72.10"
+
+# Bind credentials for searching
+AUTH_LDAP_BIND_DN = "coopbank\\adtest"  # DOMAIN\\username
+AUTH_LDAP_BIND_PASSWORD = "Coop$1234"
+
+# Where to search for users
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "DC=coopbank,DC=local",
+    ldap.SCOPE_SUBTREE,
+    "(sAMAccountName=%(user)s)"
+)
+
+# Map AD fields to Django User fields (optional but helpful)
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+# Auto-create user in Django if authenticated via AD
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+AUTH_LDAP_CREATE_USERS = True
+
+
+
+
+
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-b*m4n(e+ld$&vg2c+&%en9#eigs+0*@clz7d!&iyjut96gu7j_'
@@ -23,10 +60,14 @@ DEBUG = True
 SECURE_SSL_REDIRECT = False
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.8.100.93', '10.12.53.81']
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://10.8.100.93:9000",
+    "http://10.12.53.81:9000",
 ]
 
 
@@ -38,6 +79,10 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'reservations',
+    'django_auth_ldap',
+    
+    # 'rest_framework',
+    'rest_framework.authtoken', 
     
     'django.contrib.admin',
     'django.contrib.auth',
@@ -87,13 +132,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 
 
-# DEBUG=True
-# SECRET_KEY=*ltxny%lq*ss__0dmr1&(8wa649wr*-1(we8&49n#m9gz9^6)%
-# DB_NAME=Reservation
-# DB_USER=postgres
-# DB_PASSWORD=ofge
-# DB_HOST=localhost
-# DB_PORT=5432
+
 
 DATABASES = {
     "default": {
@@ -152,14 +191,47 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # JWT Authentication Settings
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+# }
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.TokenAuthentication',  # or SessionAuthentication
+#     ],
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+# }
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),  # User stays logged in for 30 minutes
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),     # Optional: refresh token valid for 1 day
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
 
 
 
@@ -170,4 +242,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

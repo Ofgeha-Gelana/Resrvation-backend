@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('reservations.urls')),
     path('api/accounts/', include('accounts.urls')),
+    path('api/', include('reservations.urls')),  # 👈 Use your actual app name here
 
 ]
 
